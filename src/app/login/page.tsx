@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { Notice } from "@/components/ui/notice";
@@ -14,6 +15,7 @@ export default async function LoginPage({
   const user = await getCurrentUser();
   if (user) redirect(homePath(defineAbilityFor(user)));
   const params = await searchParams;
+  const errorText = params.error ? decodeURIComponent(params.error) : "";
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
@@ -32,25 +34,23 @@ export default async function LoginPage({
           <p className="mt-2 text-[var(--muted)]">
             In Telegram, you are signed in automatically. Browser login is only a backup for local or seeded accounts.
           </p>
-          {params.telegram === "unlinked" && (
+          {(params.telegram === "unlinked" || params.telegram === "auth") && errorText && (
             <div className="mt-4">
-              <Notice tone="danger">
-                This Telegram account is not on the staff list. The first Super Admin must be listed in{" "}
-                <code>ADMIN_TELEGRAM_USERNAMES</code>, or a Super Admin must add your username, then reopen the bot.
-              </Notice>
+              <Notice tone="danger">{errorText}</Notice>
             </div>
           )}
-          {params.telegram === "auth" && (
+          {params.telegram === "unlinked" && !errorText && (
             <div className="mt-4">
               <Notice tone="danger">
-                {params.error === "network"
-                  ? "Could not reach the server to sign in with Telegram."
-                  : decodeURIComponent(params.error || "Telegram login failed.")}
+                This Telegram account is not on the staff list. Set <code>ADMIN_TELEGRAM_USERNAMES=Gedion_Afework</code>{" "}
+                then reopen the bot.
               </Notice>
             </div>
           )}
           <div className="mt-6">
-            <LoginForm showDevHint={process.env.NODE_ENV === "development"} />
+            <Suspense fallback={null}>
+              <LoginForm showDevHint={process.env.NODE_ENV === "development"} />
+            </Suspense>
           </div>
         </div>
         <p className="mt-4 text-center text-sm text-[var(--muted)]">Addis Ababa · Ethiopian Birr</p>

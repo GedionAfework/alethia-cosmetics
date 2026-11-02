@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/fields";
 import { Notice } from "@/components/ui/notice";
@@ -12,9 +12,11 @@ function inTelegram() {
 
 export function LoginForm({ showDevHint }: { showDevHint: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [telegramMode, setTelegramMode] = useState(false);
+  const telegramFailed = searchParams.get("telegram") === "auth" || searchParams.get("telegram") === "unlinked";
 
   useEffect(() => {
     setTelegramMode(inTelegram());
@@ -66,13 +68,20 @@ export function LoginForm({ showDevHint }: { showDevHint: boolean }) {
     router.refresh();
   }
 
-  if (telegramMode) {
+  if (telegramMode && !telegramFailed) {
     return (
       <div className="space-y-3">
         <Notice>Signing you in with Telegram…</Notice>
+        <p className="text-sm text-[var(--muted)]">No username or password is needed inside the Mini App.</p>
+      </div>
+    );
+  }
+
+  if (telegramMode && telegramFailed) {
+    return (
+      <div className="space-y-3">
         <p className="text-sm text-[var(--muted)]">
-          No username or password is needed here. If this stays stuck, ask to have your Telegram username
-          added as staff, then reopen the Mini App from the bot.
+          Fix the issue above, then fully close this Mini App and open it again from the bot menu.
         </p>
       </div>
     );

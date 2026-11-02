@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-async function waitForInitData(attempts = 20) {
+async function waitForInitData(attempts = 30) {
   for (let i = 0; i < attempts; i++) {
     const initData = window.Telegram?.WebApp?.initData;
     if (initData) return initData;
@@ -48,18 +48,14 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ initData }),
       });
       const data = (await res.json().catch(() => ({}))) as { home?: string; error?: string };
+      const detail = data.error || `HTTP ${res.status}`;
 
       if (res.status === 403) {
-        if (pathname !== "/login") router.replace("/login?telegram=unlinked");
-        else router.replace("/login?telegram=unlinked");
-        return;
-      }
-      if (res.status === 401 || res.status === 503) {
-        router.replace(`/login?telegram=auth&error=${encodeURIComponent(data.error || "Telegram login failed")}`);
+        router.replace(`/login?telegram=unlinked&error=${encodeURIComponent(detail)}`);
         return;
       }
       if (!res.ok) {
-        router.replace(`/login?telegram=auth&error=${encodeURIComponent(data.error || "Could not sign in")}`);
+        router.replace(`/login?telegram=auth&error=${encodeURIComponent(detail)}`);
         return;
       }
 
@@ -68,13 +64,14 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       booted.current = false;
       console.error("Telegram auth failed", err);
-      router.replace("/login?telegram=auth&error=network");
+      router.replace(`/login?telegram=auth&error=${encodeURIComponent("Network error talking to the server")}`);
     }
   }
 
   useEffect(() => {
     if (window.Telegram?.WebApp) void authenticate();
-  }, [pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
