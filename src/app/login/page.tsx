@@ -40,6 +40,15 @@ export default async function LoginPage({
               </Notice>
             </div>
           )}
+          {params.telegram === "auth" && (
+            <div className="mt-4">
+              <Notice tone="danger">
+                {params.error === "network"
+                  ? "Could not reach the server to sign in with Telegram."
+                  : decodeURIComponent(params.error || "Telegram login failed.")}
+              </Notice>
+            </div>
+          )}
           <div className="mt-6">
             <LoginForm showDevHint={process.env.NODE_ENV === "development"} />
           </div>

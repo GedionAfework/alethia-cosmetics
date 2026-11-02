@@ -51,10 +51,12 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
 }
 
 export function attachSessionCookie(res: NextResponse, token: string) {
+  // Telegram Mini Apps need SameSite=None so the session cookie sticks in the WebView.
+  const production = process.env.NODE_ENV === "production";
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: production,
+    sameSite: production ? "none" : "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });

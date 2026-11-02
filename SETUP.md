@@ -28,8 +28,8 @@ Sign in as admin and create roles with the permissions you need, then add each p
 ## 3. Telegram
 
 1. Create a bot with BotFather.
-2. Set the Mini App URL to `https://your-app.vercel.app`.
-3. Set the webhook:
+2. Set the Mini App / Menu Button URL to the **site root only**, e.g. `https://alethia-cosmetics.vercel.app` — never `/api/telegram/webhook`.
+3. Set the webhook (this is separate from the Mini App URL):
 
 ```bash
 curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://your-app.vercel.app/api/telegram/webhook"

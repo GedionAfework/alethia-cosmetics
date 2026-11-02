@@ -73,6 +73,11 @@ function replyKeyboard(labels: string[]) {
   return { keyboard: rows, resize_keyboard: true };
 }
 
+/** If BotFather Mini App URL was mistakenly set to the webhook path, send users to the app. */
+export async function GET() {
+  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_APP_URL || "https://alethia-cosmetics.vercel.app"));
+}
+
 export async function POST(req: NextRequest) {
   const update = (await req.json().catch(() => null)) as TelegramUpdate | null;
   const message = update?.message;
