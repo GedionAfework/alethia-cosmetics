@@ -4,15 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "prisma generate && next build --webpack",
+    "build": "node scripts/run-prisma.cjs generate && node scripts/run-prisma.cjs migrate deploy && next build --webpack",
     "start": "next start -p 3001",
     "lint": "eslint",
-    "db:generate": "prisma generate",
+    "db:generate": "node scripts/run-prisma.cjs generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/run-prisma.cjs generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
