@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f3ef;
+  --surface: #ffffff;
+  --ink: #241c1e;
+  --muted: #74656a;
+  --border: #eadfd8;
+  --accent: #9a3d55;
+  --accent-dark: #7a2e43;
+  --accent-soft: #f8e8ed;
+  --gold: #8d6a45;
+  --danger: #9d2c3c;
+  --ok: #1d6a48;
+  --warn: #8d5a28;
+  --sidebar: #fffdfb;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+}
+
+body {
+  --font-body: "Outfit", sans-serif;
+  --font-display: "Fraunces", serif;
+  background:
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(154, 61, 85, 0.08), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 0% 100%, rgba(141, 106, 69, 0.08), transparent 50%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
