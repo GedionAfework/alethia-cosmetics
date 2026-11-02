@@ -10,12 +10,12 @@ You need PostgreSQL. With Vercel, use Neon.
 ## 2. Vercel
 
 1. Push this repo to GitHub and import it in Vercel.
-2. Add the variables from `.env.example`. At minimum set `DATABASE_URL` (Neon’s Vercel integration often does this for you).
-3. Also set `DIRECT_URL` to Neon’s **direct / non-pooler** connection string. If the integration only added `DATABASE_URL`, duplicate that value into `DIRECT_URL`, or use `DATABASE_URL_UNPOOLED` / `POSTGRES_URL_NON_POOLING` if Neon created those. The build falls back to `DATABASE_URL` when `DIRECT_URL` is missing.
-4. Set `NEXT_PUBLIC_APP_URL` to the Vercel domain, for example `https://your-app.vercel.app`.
-5. Set a long random `SESSION_SECRET`.
-6. Change `SEED_ADMIN_PASSWORD` and `SEED_EMPLOYEE_PASSWORD`.
-7. Deploy. The build runs `prisma migrate deploy`.
+2. Add the variables from `.env.example`. At minimum set `DATABASE_URL` (Neon’s Vercel integration often does this for you). Prefer Neon’s **direct / non-pooler** URL so `prisma migrate deploy` is reliable.
+3. Set `NEXT_PUBLIC_APP_URL` to the Vercel domain, for example `https://your-app.vercel.app`.
+4. Set a long random `SESSION_SECRET`.
+5. Change `SEED_ADMIN_PASSWORD` and `SEED_EMPLOYEE_PASSWORD`.
+6. In Build & Development Settings, set Build Command to `npm run build` (or clear the override).
+7. Deploy from the latest commit on `main` (do not Redeploy an old failed deployment).
 
 Then seed once from a machine that has the production `DATABASE_URL`:
 
