@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/fields";
 import { Notice } from "@/components/ui/notice";
 
+function inTelegram() {
+  return Boolean(typeof window !== "undefined" && window.Telegram?.WebApp?.initData);
+}
+
 export function LoginForm({ showDevHint }: { showDevHint: boolean }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [telegramMode, setTelegramMode] = useState(false);
+
+  useEffect(() => {
+    setTelegramMode(inTelegram());
+  }, []);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,6 +64,18 @@ export function LoginForm({ showDevHint }: { showDevHint: boolean }) {
     }
     router.replace(data.home || "/account");
     router.refresh();
+  }
+
+  if (telegramMode) {
+    return (
+      <div className="space-y-3">
+        <Notice>Signing you in with Telegram…</Notice>
+        <p className="text-sm text-[var(--muted)]">
+          No username or password is needed here. If this stays stuck, ask to have your Telegram username
+          added as staff, then reopen the Mini App from the bot.
+        </p>
+      </div>
+    );
   }
 
   return (

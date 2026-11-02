@@ -30,12 +30,13 @@ export default async function LoginPage({
         <div className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-[0_20px_50px_-32px_rgba(36,24,28,0.45)] sm:p-8">
           <h1 className="font-display text-4xl">Sign in</h1>
           <p className="mt-2 text-[var(--muted)]">
-            Staff sign in through the Telegram Mini App. A Super Admin must add your Telegram username first.
+            In Telegram, you are signed in automatically. Browser login is only a backup for local or seeded accounts.
           </p>
           {params.telegram === "unlinked" && (
             <div className="mt-4">
               <Notice tone="danger">
-                This Telegram account is not on the staff list. Ask a Super Admin to add your username, then open the bot again.
+                This Telegram account is not on the staff list. The first Super Admin must be listed in{" "}
+                <code>ADMIN_TELEGRAM_USERNAMES</code>, or a Super Admin must add your username, then reopen the bot.
               </Notice>
             </div>
           )}

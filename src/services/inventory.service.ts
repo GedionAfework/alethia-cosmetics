@@ -1,4 +1,5 @@
 import { Prisma, ProductCategory } from "@prisma/client";
+import { ADMIN_PERMISSIONS } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db/prisma";
 import { isAdminAccount, type TelegramUser } from "@/lib/telegram/validate";
 import { clearStockAlertIfRecovered } from "@/services/notification.service";
@@ -7,7 +8,7 @@ const userWithRole = { include: { role: { include: { permissions: true } } } } a
 
 export async function linkTelegramAccount(tg: TelegramUser) {
   const telegramId = BigInt(tg.id);
-  const username = tg.username?.replace(/^@/, "") || null;
+  const username = tg.username?.replace(/^@/, "").toLowerCase() || null;
 
   const byId = await prisma.user.findUnique({ where: { telegramId }, ...userWithRole });
   if (byId) return byId.isActive ? byId : null;
@@ -48,9 +49,67 @@ export async function linkTelegramAccount(tg: TelegramUser) {
         ...userWithRole,
       });
     }
+
+    // First env-listed admin opening the Mini App: create the Super Admin if none exists yet.
+    if (!owner) {
+      return ensureTelegramSuperAdmin(tg, telegramId, username);
+    }
   }
 
   return null;
+}
+
+async function ensureTelegramSuperAdmin(
+  tg: TelegramUser,
+  telegramId: bigint,
+  username: string | null
+) {
+  let adminRole = await prisma.role.findFirst({ where: { name: "Admin" } });
+  if (!adminRole) {
+    adminRole = await prisma.role.create({
+      data: {
+        name: "Admin",
+        description: "Full shop access. Super Admin status is separate.",
+        permissions: { create: ADMIN_PERMISSIONS.map((permission) => ({ permission })) },
+      },
+    });
+  }
+
+  const base =
+    (username || `tg${tg.id}`).toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 28) || `tg${tg.id}`;
+  let login = base.length >= 3 ? base : `${base}admin`;
+  for (let i = 0; i < 20; i++) {
+    const taken = await prisma.user.findUnique({ where: { username: login } });
+    if (!taken) break;
+    login = `${base.slice(0, 24)}${i + 2}`;
+  }
+
+  try {
+    return await prisma.user.create({
+      data: {
+        name: [tg.first_name, tg.last_name].filter(Boolean).join(" ") || "Super Admin",
+        username: login,
+        passwordHash: null,
+        roleId: adminRole.id,
+        telegramId,
+        telegramUsername: username,
+        isSuperAdmin: true,
+        isActive: true,
+      },
+      ...userWithRole,
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const existing = await prisma.user.findFirst({
+        where: {
+          OR: [{ telegramId }, ...(username ? [{ telegramUsername: username }] : [])],
+        },
+        ...userWithRole,
+      });
+      if (existing?.isActive) return existing;
+    }
+    throw err;
+  }
 }
 
 function skuFromName(name: string) {
