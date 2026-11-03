@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { TelegramProvider } from "@/components/telegram/telegram-provider";
+import { getMessages } from "@/lib/i18n";
+import { I18nProvider } from "@/lib/i18n/client";
+import { getPreferences } from "@/lib/i18n/server";
+import { THEME_SWATCHES } from "@/lib/preferences";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,25 +11,33 @@ export const metadata: Metadata = {
   description: "Inventory and sales for Aletheia Cosmo & Gift",
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#f6f3ef",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const { theme } = await getPreferences();
+  return {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+    themeColor: THEME_SWATCHES[theme][0],
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { theme, locale } = await getPreferences();
+
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
+    <html lang={locale} data-theme={theme} className="h-full" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Outfit:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
       <body className="min-h-full antialiased">
-        <TelegramProvider>{children}</TelegramProvider>
+        <I18nProvider messages={getMessages(locale)} locale={locale} theme={theme}>
+          <TelegramProvider>{children}</TelegramProvider>
+        </I18nProvider>
       </body>
     </html>
   );

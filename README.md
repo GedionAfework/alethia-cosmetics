@@ -30,6 +30,8 @@ The shop day is Africa/Addis_Ababa. Prices are in ETB.
 
 ## What you can do
 
+- The app works in English and Amharic, with five themes (Blush, Midnight, Ocean, Noir, Sage). Each person picks theirs in **Settings**.
+- Users, Roles & permissions, and Super Admins are all under **Settings**.
 - Roles are created first. Each role is a set of permissions, and each user is assigned one role.
 - Inventory is alphabetical, with received, sold, corrections, and on-hand quantity.
 - Categories are Cosmetics, Perfumes, and Gifts. Search covers name, SKU, and barcode.

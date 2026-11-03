@@ -1,23 +1,23 @@
+import Link from "next/link";
+import { Package, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CheckboxField, SelectField, TextField } from "@/components/ui/fields";
+import { ButtonLink } from "@/components/ui/button";
+import { CategoryIcon } from "@/components/ui/category-icon";
 import { Empty } from "@/components/ui/empty";
-import { MetricGrid } from "@/components/ui/metric";
+import { SearchInput } from "@/components/ui/fields";
+import { List, ListRow } from "@/components/ui/list";
 import { Notice } from "@/components/ui/notice";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tabs } from "@/components/ui/tabs";
 import { requirePage } from "@/lib/auth/access";
-import { categoryLabel, isCategory, stockLabel, stockTone } from "@/lib/catalog";
-import { formatEtb } from "@/lib/utils";
+import { CATEGORIES, isCategory, stockTone } from "@/lib/catalog";
+import { formatMoney } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n/server";
+import { stockTabs } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 import { listProducts } from "@/services/inventory.service";
 
 export const dynamic = "force-dynamic";
-
-const notices: Record<string, string> = {
-  received: "Stock received and added to the balance.",
-  archived: "This item has history, so it was archived instead of deleted.",
-  deleted: "Product deleted.",
-};
 
 export default async function InventoryPage({
   searchParams,
@@ -26,93 +26,105 @@ export default async function InventoryPage({
 }) {
   const access = await requirePage((ability) => ability.can("read", "Inventory"));
   const params = await searchParams;
+  const { t, locale } = await getI18n();
   const canManage = access.ability.can("manage", "Inventory");
-  const canReceive = access.ability.can("create", "StockReceipt");
   const category = params.category && isCategory(params.category) ? params.category : undefined;
-  const products = await listProducts({
-    q: params.q,
-    category,
-    includeArchived: params.archived === "1",
-  });
+  const archived = params.archived === "1";
+  const products = await listProducts({ q: params.q, category, includeArchived: archived });
+
+  const notices: Record<string, string> = {
+    received: t.inventory.noticeReceived,
+    archived: t.inventory.noticeArchived,
+    deleted: t.inventory.noticeDeleted,
+  };
+
+  function chipHref(next: { category?: string; archived?: boolean }) {
+    const query = new URLSearchParams();
+    if (params.q) query.set("q", params.q);
+    if (next.category) query.set("category", next.category);
+    if (next.archived) query.set("archived", "1");
+    const qs = query.toString();
+    return qs ? `/admin/inventory?${qs}` : "/admin/inventory";
+  }
+
+  const chips = [
+    { label: t.common.all, href: chipHref({ archived }), active: !category },
+    ...CATEGORIES.map((value) => ({
+      label: t.categories[value],
+      href: chipHref({ category: value, archived }),
+      active: category === value,
+    })),
+    { label: t.inventory.showArchived, href: chipHref({ category, archived: !archived }), active: archived },
+  ];
 
   return (
     <div>
+      <Tabs items={stockTabs(access.ability, t)} />
       <PageHeader
-        title="Inventory"
-        description="Alphabetical. On hand = received − sold + corrections."
-        actions={canManage ? <ButtonLink href="/admin/inventory/new">Add product</ButtonLink> : undefined}
+        title={t.inventory.title}
+        actions={
+          canManage ? (
+            <ButtonLink href="/admin/inventory/new">
+              <Plus />
+              {t.inventory.add}
+            </ButtonLink>
+          ) : undefined
+        }
       />
 
-      {params.notice && notices[params.notice] && (
-        <div className="mt-4">
-          <Notice tone="ok">{notices[params.notice]}</Notice>
-        </div>
-      )}
+      {params.notice && notices[params.notice] && <Notice tone="ok" className="mb-4">{notices[params.notice]}</Notice>}
 
-      <form className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end" action="/admin/inventory">
-        <TextField
-          label="Search"
-          name="q"
-          defaultValue={params.q || ""}
-          placeholder="Name, SKU, or barcode"
-          className="min-w-0 flex-1"
-        />
-        <SelectField label="Category" name="category" defaultValue={category || ""} className="sm:w-48">
-          <option value="">All</option>
-          <option value="COSMETICS">Cosmetics</option>
-          <option value="PERFUMES">Perfumes</option>
-          <option value="GIFTS">Gifts</option>
-        </SelectField>
-        <CheckboxField name="archived" value="1" defaultChecked={params.archived === "1"} label="Archived" className="sm:mb-3" />
-        <Button type="submit" variant="secondary">
-          Search
-        </Button>
+      <form action="/admin/inventory" className="mb-3">
+        {category && <input type="hidden" name="category" value={category} />}
+        {archived && <input type="hidden" name="archived" value="1" />}
+        <SearchInput name="q" defaultValue={params.q || ""} placeholder={t.inventory.search} aria-label={t.common.search} />
       </form>
 
-      <div className="mt-4">
-        {products.length === 0 && <Empty>No products match.</Empty>}
-        {products.map((product) => {
-          const tone = stockTone(product.stockOnHand, product.reorderLevel);
-          return (
-            <Card key={product.id} className="mb-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-sm text-[var(--muted)]">
-                    {categoryLabel(product.category)} · {product.sku}
-                    {product.barcode ? ` · ${product.barcode}` : ""}
-                    {!product.isActive ? " · Archived" : ""}
-                  </p>
-                </div>
-                <Badge tone={product.isActive ? tone : "muted"}>
-                  {product.isActive ? stockLabel(tone) : "Archived"}
-                </Badge>
-              </div>
-              <MetricGrid
-                items={[
-                  { label: "Price", value: formatEtb(Number(product.unitPrice)) },
-                  { label: "Received", value: String(product.totalReceived) },
-                  { label: "Sold", value: String(product.totalSold) },
-                  { label: "Corrections", value: String(product.totalAdjusted) },
-                  { label: "On hand", value: String(product.stockOnHand) },
-                ]}
-              />
-              <div className="mt-3 flex gap-2">
-                {canManage && (
-                  <ButtonLink href={`/admin/inventory/${product.id}`} variant="ghost" size="sm">
-                    Edit
-                  </ButtonLink>
-                )}
-                {canReceive && (
-                  <ButtonLink href={`/admin/receive?product=${product.id}`} variant="ghost" size="sm">
-                    Receive
-                  </ButtonLink>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+      <div className="scrollbar-none -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        {chips.map((chip) => (
+          <Link
+            key={chip.label}
+            href={chip.href}
+            className={cn(
+              "shrink-0 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition",
+              chip.active ? "bg-ink text-canvas ring-ink" : "bg-surface text-muted ring-line hover:text-ink"
+            )}
+          >
+            {chip.label}
+          </Link>
+        ))}
       </div>
+
+      {products.length === 0 ? (
+        <Empty icon={Package}>{t.inventory.empty}</Empty>
+      ) : (
+        <List>
+          {products.map((product) => {
+            const tone = stockTone(product.stockOnHand, product.reorderLevel);
+            return (
+              <ListRow
+                key={product.id}
+                href={canManage ? `/admin/inventory/${product.id}` : undefined}
+                leading={<CategoryIcon category={product.category} muted={!product.isActive} />}
+                title={product.name}
+                subtitle={`${formatMoney(Number(product.unitPrice), locale)} · ${product.sku}`}
+                trailing={
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="tabular text-lg leading-none font-bold">{product.stockOnHand}</span>
+                    {product.isActive ? (
+                      <Badge tone={tone} dot className="px-2 py-0.5 text-[11px]">
+                        {t.stockStatus[tone]}
+                      </Badge>
+                    ) : (
+                      <Badge className="px-2 py-0.5 text-[11px]">{t.common.archived}</Badge>
+                    )}
+                  </div>
+                }
+              />
+            );
+          })}
+        </List>
+      )}
     </div>
   );
 }

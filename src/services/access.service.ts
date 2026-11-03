@@ -14,6 +14,15 @@ export async function listRoles() {
   });
 }
 
+export async function teamCounts() {
+  const [users, roles, superAdmins] = await Promise.all([
+    prisma.user.count(),
+    prisma.role.count(),
+    prisma.user.count({ where: { isActive: true, isSuperAdmin: true } }),
+  ]);
+  return { users, roles, superAdmins };
+}
+
 export async function getRole(id: string) {
   return prisma.role.findUnique({
     where: { id },

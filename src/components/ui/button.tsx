@@ -2,24 +2,27 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const variants = {
-  primary: "bg-[var(--accent)] text-white shadow-sm hover:bg-[var(--accent-dark)]",
-  secondary: "border border-[var(--border)] bg-white text-[var(--ink)] hover:bg-[var(--accent-soft)]",
-  ghost: "bg-transparent text-[var(--accent-dark)] hover:bg-[var(--accent-soft)]",
-  danger: "bg-transparent text-[var(--danger)] hover:bg-[#fde8eb]",
+  primary:
+    "bg-accent text-on-accent shadow-[0_8px_20px_-10px_var(--accent)] hover:bg-accent-strong active:scale-[0.98]",
+  secondary: "bg-surface text-ink ring-1 ring-line hover:bg-surface-2 active:scale-[0.98]",
+  soft: "bg-accent-soft text-accent hover:brightness-95 active:scale-[0.98]",
+  ghost: "bg-transparent text-muted hover:bg-surface-2 hover:text-ink",
+  danger: "bg-danger-soft text-danger hover:brightness-95 active:scale-[0.98]",
 } as const;
 
 const sizes = {
-  md: "min-h-11 px-4 text-sm",
-  sm: "min-h-9 px-3 text-sm",
+  sm: "h-9 px-3.5 text-sm rounded-xl",
+  md: "h-11 px-5 text-sm rounded-2xl",
+  lg: "h-13 px-6 text-base rounded-2xl",
+  icon: "size-10 rounded-xl",
 } as const;
 
-export function buttonClassName(
-  variant: keyof typeof variants = "primary",
-  size: keyof typeof sizes = "md",
-  className?: string
-) {
+export type ButtonVariant = keyof typeof variants;
+export type ButtonSize = keyof typeof sizes;
+
+export function buttonClassName(variant: ButtonVariant = "primary", size: ButtonSize = "md", className?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex shrink-0 items-center justify-center gap-2 font-semibold whitespace-nowrap transition duration-150 select-none disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-[1.1em] [&_svg]:shrink-0",
     variants[variant],
     sizes[size],
     className
@@ -27,17 +30,17 @@ export function buttonClassName(
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: keyof typeof variants;
-  size?: keyof typeof sizes;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 };
 
-export function Button({ variant = "primary", size = "md", className, ...props }: ButtonProps) {
-  return <button className={buttonClassName(variant, size, className)} {...props} />;
+export function Button({ variant = "primary", size = "md", className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={buttonClassName(variant, size, className)} {...props} />;
 }
 
 type ButtonLinkProps = React.ComponentProps<typeof Link> & {
-  variant?: keyof typeof variants;
-  size?: keyof typeof sizes;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 };
 
 export function ButtonLink({ variant = "primary", size = "md", className, ...props }: ButtonLinkProps) {
@@ -45,8 +48,8 @@ export function ButtonLink({ variant = "primary", size = "md", className, ...pro
 }
 
 type ButtonAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  variant?: keyof typeof variants;
-  size?: keyof typeof sizes;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 };
 
 export function ButtonAnchor({ variant = "secondary", size = "md", className, ...props }: ButtonAnchorProps) {

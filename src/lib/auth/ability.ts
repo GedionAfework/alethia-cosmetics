@@ -72,12 +72,9 @@ export function homePath(ability: AppAbility) {
   if (ability.can("read", "Alert")) return "/admin/alerts";
   if (ability.can("read", "SalesLedger")) return "/admin/sales";
   if (ability.can("read", "Report")) return "/admin/reports";
-  if (ability.can("manage", "User")) return "/admin/users";
-  if (ability.can("manage", "Role")) return "/admin/roles";
-  if (ability.can("manage", "Settings")) return "/account/settings";
   if (ability.can("create", "Sale")) return "/pos";
   if (ability.can("read", "Sale")) return "/pos/sales";
-  return "/account";
+  return "/settings";
 }
 
 export function canEnterOffice(ability: AppAbility) {

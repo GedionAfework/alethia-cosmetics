@@ -1,42 +1,30 @@
 import { useId } from "react";
+import { ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { controlClassName } from "@/components/ui/input";
 
 type FieldChrome = {
   label: string;
-  hint?: string;
   error?: string;
   className?: string;
   id?: string;
 };
 
-function describedBy(hintId?: string, errorId?: string) {
-  return [hintId, errorId].filter(Boolean).join(" ") || undefined;
-}
-
 function FieldFrame({
   label,
-  hint,
   error,
   className,
   fieldId,
   children,
 }: FieldChrome & { fieldId: string; children: React.ReactNode }) {
-  const hintId = hint ? `${fieldId}-hint` : undefined;
-  const errorId = error ? `${fieldId}-error` : undefined;
   return (
-    <div className={cn("flex w-full flex-col gap-1.5", className)}>
-      <label htmlFor={fieldId} className="text-sm font-medium text-[var(--ink)]">
+    <div className={cn("flex w-full min-w-0 flex-col gap-1.5", className)}>
+      <label htmlFor={fieldId} className="px-1 text-[13px] font-semibold text-muted">
         {label}
       </label>
       {children}
-      {hint && (
-        <p id={hintId} className="text-sm text-[var(--muted)]">
-          {hint}
-        </p>
-      )}
       {error && (
-        <p id={errorId} className="text-sm text-[var(--danger)]">
+        <p id={`${fieldId}-error`} className="px-1 text-sm text-danger">
           {error}
         </p>
       )}
@@ -46,7 +34,6 @@ function FieldFrame({
 
 export function TextField({
   label,
-  hint,
   error,
   className,
   id,
@@ -54,15 +41,13 @@ export function TextField({
 }: FieldChrome & React.InputHTMLAttributes<HTMLInputElement>) {
   const autoId = useId();
   const fieldId = id || autoId;
-  const hintId = hint ? `${fieldId}-hint` : undefined;
-  const errorId = error ? `${fieldId}-error` : undefined;
   return (
-    <FieldFrame label={label} hint={hint} error={error} className={className} fieldId={fieldId}>
+    <FieldFrame label={label} error={error} className={className} fieldId={fieldId}>
       <input
         id={fieldId}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy(hintId, errorId)}
-        className={cn(controlClassName, error && "border-[var(--danger)]")}
+        aria-describedby={error ? `${fieldId}-error` : undefined}
+        className={cn(controlClassName, error && "ring-2 ring-danger")}
         {...props}
       />
     </FieldFrame>
@@ -71,7 +56,6 @@ export function TextField({
 
 export function TextAreaField({
   label,
-  hint,
   error,
   className,
   id,
@@ -79,15 +63,12 @@ export function TextAreaField({
 }: FieldChrome & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const autoId = useId();
   const fieldId = id || autoId;
-  const hintId = hint ? `${fieldId}-hint` : undefined;
-  const errorId = error ? `${fieldId}-error` : undefined;
   return (
-    <FieldFrame label={label} hint={hint} error={error} className={className} fieldId={fieldId}>
+    <FieldFrame label={label} error={error} className={className} fieldId={fieldId}>
       <textarea
         id={fieldId}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy(hintId, errorId)}
-        className={cn(controlClassName, "min-h-28 py-3", error && "border-[var(--danger)]")}
+        className={cn(controlClassName, "h-auto min-h-24 py-3", error && "ring-2 ring-danger")}
         {...props}
       />
     </FieldFrame>
@@ -96,7 +77,6 @@ export function TextAreaField({
 
 export function SelectField({
   label,
-  hint,
   error,
   className,
   id,
@@ -105,76 +85,66 @@ export function SelectField({
 }: FieldChrome & React.SelectHTMLAttributes<HTMLSelectElement>) {
   const autoId = useId();
   const fieldId = id || autoId;
-  const hintId = hint ? `${fieldId}-hint` : undefined;
-  const errorId = error ? `${fieldId}-error` : undefined;
   return (
-    <FieldFrame label={label} hint={hint} error={error} className={className} fieldId={fieldId}>
+    <FieldFrame label={label} error={error} className={className} fieldId={fieldId}>
       <div className="relative">
         <select
           id={fieldId}
           aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy(hintId, errorId)}
-          className={cn(controlClassName, "appearance-none pr-10", error && "border-[var(--danger)]")}
+          className={cn(controlClassName, "appearance-none pr-11", error && "ring-2 ring-danger")}
           {...props}
         >
           {children}
         </select>
-        <span
+        <ChevronDown
           aria-hidden
-          className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[var(--muted)]"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 6.5 8 10.5 12 6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </span>
+          className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted"
+        />
       </div>
     </FieldFrame>
   );
 }
 
-export function CheckboxField({
+/** A labelled on/off switch backed by a real checkbox, so it works in plain forms. */
+export function SwitchField({
   label,
-  hint,
   className,
   id,
-  boxed = false,
   ...props
 }: {
   label: string;
-  hint?: string;
   className?: string;
   id?: string;
-  boxed?: boolean;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "id">) {
   const autoId = useId();
   const fieldId = id || autoId;
-  const hintId = hint ? `${fieldId}-hint` : undefined;
   return (
-    <div
+    <label
+      htmlFor={fieldId}
       className={cn(
-        "flex items-start gap-3",
-        boxed &&
-          "rounded-2xl border border-[var(--border)] bg-white px-3 py-3 has-[:checked]:border-[var(--accent)] has-[:checked]:bg-[var(--accent-soft)]",
+        "flex cursor-pointer items-center justify-between gap-4 rounded-2xl bg-surface-2 px-4 py-3.5 text-[15px] font-medium transition hover:brightness-[0.98] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50",
         className
       )}
     >
-      <input
-        id={fieldId}
-        type="checkbox"
-        aria-describedby={hintId}
-        className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
-        {...props}
+      <span className="min-w-0">{label}</span>
+      <input id={fieldId} type="checkbox" className="peer sr-only" {...props} />
+      <span
+        aria-hidden
+        className="relative h-7 w-12 shrink-0 rounded-full bg-line transition peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"
       />
-      <div>
-        <label htmlFor={fieldId} className="text-sm font-medium text-[var(--ink)]">
-          {label}
-        </label>
-        {hint && (
-          <p id={hintId} className="mt-0.5 text-sm text-[var(--muted)]">
-            {hint}
-          </p>
-        )}
-      </div>
+    </label>
+  );
+}
+
+/** Search input with a leading icon. Pass `name` to use it inside a GET form. */
+export function SearchInput({
+  className,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div className={cn("relative min-w-0 flex-1", className)}>
+      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-muted" />
+      <input type="search" className={cn(controlClassName, "pl-11")} {...props} />
     </div>
   );
 }

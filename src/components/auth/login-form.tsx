@@ -1,114 +1,91 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/fields";
 import { Notice } from "@/components/ui/notice";
+import { useI18n } from "@/lib/i18n/client";
 
 function inTelegram() {
-  return Boolean(typeof window !== "undefined" && window.Telegram?.WebApp?.initData);
+  return Boolean(window.Telegram?.WebApp?.initData);
 }
+
+const noopSubscribe = () => () => {};
 
 export function LoginForm({ showDevHint }: { showDevHint: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, fmt, err } = useI18n();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const [telegramMode, setTelegramMode] = useState(false);
+  const telegramMode = useSyncExternalStore(noopSubscribe, inTelegram, () => false);
   const telegramFailed = searchParams.get("telegram") === "auth" || searchParams.get("telegram") === "unlinked";
 
-  useEffect(() => {
-    setTelegramMode(inTelegram());
-  }, []);
-
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function signIn(url: string, body: Record<string, unknown>) {
     setPending(true);
     setError("");
-    const form = new FormData(event.currentTarget);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: form.get("username"),
-          password: form.get("password"),
-        }),
+        body: JSON.stringify(body),
       });
       const data = (await res.json()) as { error?: string; home?: string };
       if (!res.ok) {
-        setError(data.error || "Could not sign in.");
+        setError(data.error ? err(data.error) : t.login.failed);
         setPending(false);
         return;
       }
-      router.replace(data.home || "/account");
+      router.replace(data.home || "/settings");
       router.refresh();
     } catch {
-      setError("Could not sign in.");
+      setError(t.login.failed);
       setPending(false);
     }
   }
 
-  async function devLogin(username: string) {
-    setPending(true);
-    setError("");
-    const res = await fetch("/api/auth/dev-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
-    const data = (await res.json()) as { error?: string; home?: string };
-    if (!res.ok) {
-      setError(data.error || "Could not sign in.");
-      setPending(false);
-      return;
-    }
-    router.replace(data.home || "/account");
-    router.refresh();
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    await signIn("/api/auth/login", { username: form.get("username"), password: form.get("password") });
   }
 
   if (telegramMode && !telegramFailed) {
     return (
-      <div className="space-y-3">
-        <Notice>Signing you in with Telegram…</Notice>
-        <p className="text-sm text-[var(--muted)]">No username or password is needed inside the Mini App.</p>
+      <div className="flex items-center gap-3 rounded-2xl bg-accent-soft px-4 py-4 text-sm font-semibold text-accent">
+        <LoaderCircle className="size-5 animate-spin" />
+        {t.login.telegram}
       </div>
     );
   }
 
   if (telegramMode && telegramFailed) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-[var(--muted)]">
-          Fix the issue above, then fully close this Mini App and open it again from the bot menu.
-        </p>
-      </div>
-    );
+    return <p className="text-sm text-muted">{t.login.telegramFailed}</p>;
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <TextField label="Username" name="username" autoComplete="username" required />
-      <TextField label="Password" name="password" type="password" autoComplete="current-password" required />
+      <TextField label={t.login.username} name="username" autoComplete="username" autoCapitalize="none" required />
+      <TextField label={t.login.password} name="password" type="password" autoComplete="current-password" required />
       {error && <Notice tone="danger">{error}</Notice>}
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+        {pending ? t.login.submitting : t.login.submit}
       </Button>
       {showDevHint && (
-        <div className="space-y-3 border-t border-[var(--border)] pt-4">
-          <p className="text-sm text-[var(--muted)]">
-            Local seed accounts are <span className="font-semibold text-[var(--ink)]">admin</span> and{" "}
-            <span className="font-semibold text-[var(--ink)]">cashier</span>. Passwords are in <code>.env</code>.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" onClick={() => devLogin("admin")} disabled={pending}>
-              Continue as admin
+        <div className="grid grid-cols-2 gap-2 border-t border-line pt-4">
+          {["admin", "cashier"].map((username) => (
+            <Button
+              key={username}
+              variant="secondary"
+              size="sm"
+              onClick={() => signIn("/api/auth/dev-login", { username })}
+              disabled={pending}
+            >
+              {fmt(t.login.devAs, { name: username })}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => devLogin("cashier")} disabled={pending}>
-              Continue as cashier
-            </Button>
-          </div>
+          ))}
         </div>
       )}
     </form>

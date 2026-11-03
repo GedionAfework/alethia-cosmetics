@@ -1,56 +1,84 @@
+import { CircleCheck, PackagePlus, PackageX, TriangleAlert } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { Empty } from "@/components/ui/empty";
+import { SectionTitle } from "@/components/ui/card";
+import { IconTile, List, ListRow } from "@/components/ui/list";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tabs } from "@/components/ui/tabs";
 import { requirePage } from "@/lib/auth/access";
+import { getI18n } from "@/lib/i18n/server";
+import { stockTabs } from "@/lib/nav";
 import { stockAlertLists } from "@/services/inventory.service";
 
 export const dynamic = "force-dynamic";
 
+function AllClear({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 rounded-3xl bg-ok-soft px-4 py-4 text-sm font-semibold text-ok">
+      <CircleCheck className="size-5" />
+      {children}
+    </div>
+  );
+}
+
 export default async function AlertsPage() {
-  await requirePage((ability) => ability.can("read", "Alert"));
-  const { out, low } = await stockAlertLists();
+  const access = await requirePage((ability) => ability.can("read", "Alert"));
+  const [{ t, fmt }, { out, low }] = await Promise.all([getI18n(), stockAlertLists()]);
+  const canReceive = access.ability.can("create", "StockReceipt");
+
+  function receiveButton(id: string) {
+    if (!canReceive) return null;
+    return (
+      <ButtonLink href={`/admin/receive?product=${id}`} variant="soft" size="icon" aria-label={t.nav.receive}>
+        <PackagePlus />
+      </ButtonLink>
+    );
+  }
 
   return (
-    <div className="space-y-10">
-      <PageHeader
-        title="Alerts"
-        description="Out of stock means nothing is left to sell. Low stock means the balance is still above zero and at or below that item's reorder level. A sale that crosses the line also messages Telegram accounts that can view alerts."
-      />
+    <div>
+      <Tabs items={stockTabs(access.ability, t)} />
+      <PageHeader title={t.alerts.title} />
 
-      <section>
-        <h2 className="font-display text-2xl">Out of stock</h2>
-        {out.length === 0 && <Empty>Nothing is sold out.</Empty>}
-        {out.map((product) => (
-          <article key={product.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] py-3">
-            <div>
-              <p className="font-semibold">{product.name}</p>
-              <p className="text-sm text-[var(--muted)]">
-                {product.sku} · sold {product.totalSold} · received {product.totalReceived}
-              </p>
-            </div>
-            <ButtonLink href={`/admin/receive?product=${product.id}`} variant="secondary">
-              Receive
-            </ButtonLink>
-          </article>
-        ))}
+      <section className="mb-8">
+        <SectionTitle>
+          {t.alerts.out} · {out.length}
+        </SectionTitle>
+        {out.length === 0 ? (
+          <AllClear>{t.alerts.noneOut}</AllClear>
+        ) : (
+          <List>
+            {out.map((product) => (
+              <ListRow
+                key={product.id}
+                leading={<IconTile icon={PackageX} tone="danger" />}
+                title={product.name}
+                subtitle={product.sku}
+                trailing={receiveButton(product.id)}
+              />
+            ))}
+          </List>
+        )}
       </section>
 
       <section>
-        <h2 className="font-display text-2xl">Low stock</h2>
-        {low.length === 0 && <Empty>Nothing is close to selling out.</Empty>}
-        {low.map((product) => (
-          <article key={product.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] py-3">
-            <div>
-              <p className="font-semibold">{product.name}</p>
-              <p className="text-sm text-[var(--warn)]">
-                {product.stockOnHand} left · reorder at {product.reorderLevel}
-              </p>
-            </div>
-            <ButtonLink href={`/admin/receive?product=${product.id}`} variant="secondary">
-              Receive
-            </ButtonLink>
-          </article>
-        ))}
+        <SectionTitle>
+          {t.alerts.low} · {low.length}
+        </SectionTitle>
+        {low.length === 0 ? (
+          <AllClear>{t.alerts.noneLow}</AllClear>
+        ) : (
+          <List>
+            {low.map((product) => (
+              <ListRow
+                key={product.id}
+                leading={<IconTile icon={TriangleAlert} tone="warn" />}
+                title={product.name}
+                subtitle={`${fmt(t.alerts.left, { n: product.stockOnHand })} · ${fmt(t.alerts.reorderAt, { n: product.reorderLevel })}`}
+                trailing={receiveButton(product.id)}
+              />
+            ))}
+          </List>
+        )}
       </section>
     </div>
   );

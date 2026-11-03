@@ -1,6 +1,9 @@
 import { ReceiveForm } from "@/components/admin/receive-form";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tabs } from "@/components/ui/tabs";
 import { requirePage } from "@/lib/auth/access";
+import { getI18n } from "@/lib/i18n/server";
+import { stockTabs } from "@/lib/nav";
 import { listProducts } from "@/services/inventory.service";
 
 export const dynamic = "force-dynamic";
@@ -10,20 +13,25 @@ export default async function ReceivePage({
 }: {
   searchParams: Promise<{ product?: string }>;
 }) {
-  await requirePage((ability) => ability.can("create", "StockReceipt"));
+  const access = await requirePage((ability) => ability.can("create", "StockReceipt"));
   const { product } = await searchParams;
-  const products = await listProducts({});
+  const [{ t }, products] = await Promise.all([getI18n(), listProducts({})]);
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      <PageHeader
-        title="Receive stock"
-        description="Every delivery increases received and the on-hand balance. Sold quantities stay as they are."
-      />
-      <ReceiveForm
-        selectedId={product}
-        products={products.map((item) => ({ id: item.id, name: item.name, sku: item.sku }))}
-      />
+    <div>
+      <Tabs items={stockTabs(access.ability, t)} />
+      <div className="mx-auto max-w-xl">
+        <PageHeader title={t.receive.title} />
+        <ReceiveForm
+          selectedId={product}
+          products={products.map((item) => ({
+            id: item.id,
+            name: item.name,
+            sku: item.sku,
+            stockOnHand: item.stockOnHand,
+          }))}
+        />
+      </div>
     </div>
   );
 }

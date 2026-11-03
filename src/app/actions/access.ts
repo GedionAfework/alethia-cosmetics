@@ -17,12 +17,9 @@ import {
 } from "@/services/access.service";
 
 function refreshAccess() {
-  revalidatePath("/admin/roles");
-  revalidatePath("/admin/users");
-  revalidatePath("/admin");
-  revalidatePath("/pos");
-  revalidatePath("/account");
-  revalidatePath("/account/settings");
+  revalidatePath("/settings", "layout");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/pos", "layout");
 }
 
 export async function createRoleAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -40,7 +37,7 @@ export async function createRoleAction(_prev: ActionResult, formData: FormData):
   }
 
   refreshAccess();
-  redirect("/admin/roles?notice=created");
+  redirect("/settings/roles?notice=created");
 }
 
 export async function updateRoleAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -59,7 +56,7 @@ export async function updateRoleAction(_prev: ActionResult, formData: FormData):
   }
 
   refreshAccess();
-  redirect("/admin/roles?notice=updated");
+  redirect("/settings/roles?notice=updated");
 }
 
 export async function deleteRoleAction(formData: FormData) {
@@ -70,10 +67,10 @@ export async function deleteRoleAction(formData: FormData) {
     await deleteRole(id);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not delete the role.";
-    redirect(`/admin/roles/${id}?error=${encodeURIComponent(message)}`);
+    redirect(`/settings/roles/${id}?error=${encodeURIComponent(message)}`);
   }
   refreshAccess();
-  redirect("/admin/roles?notice=deleted");
+  redirect("/settings/roles?notice=deleted");
 }
 
 export async function createUserAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -92,7 +89,7 @@ export async function createUserAction(_prev: ActionResult, formData: FormData):
   }
 
   refreshAccess();
-  redirect("/admin/users?notice=created");
+  redirect("/settings/users?notice=created");
 }
 
 export async function updateUserAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -114,7 +111,7 @@ export async function updateUserAction(_prev: ActionResult, formData: FormData):
   }
 
   refreshAccess();
-  redirect("/admin/users?notice=updated");
+  redirect("/settings/users?notice=updated");
 }
 
 export async function grantSuperAdminAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -133,7 +130,7 @@ export async function grantSuperAdminAction(_prev: ActionResult, formData: FormD
   }
 
   refreshAccess();
-  redirect("/account/settings?notice=granted");
+  redirect("/settings/admins?notice=granted");
 }
 
 export async function transferSuperAdminAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -153,5 +150,5 @@ export async function transferSuperAdminAction(_prev: ActionResult, formData: Fo
   }
 
   refreshAccess();
-  redirect("/account?notice=handed-off");
+  redirect("/settings?notice=handed-off");
 }

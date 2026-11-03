@@ -1,20 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Script from "next/script";
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready: () => void;
-        expand: () => void;
-        initData: string;
-      };
-    };
-  }
-}
+import { useI18n } from "@/lib/i18n/client";
+import { syncTelegramChrome } from "@/lib/telegram/client";
 
 async function waitForInitData(attempts = 30) {
   for (let i = 0; i < attempts; i++) {
@@ -27,7 +17,7 @@ async function waitForInitData(attempts = 30) {
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const { theme } = useI18n();
   const booted = useRef(false);
 
   async function authenticate() {
@@ -39,6 +29,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     booted.current = true;
     tg.ready();
     tg.expand();
+    syncTelegramChrome();
 
     try {
       const res = await fetch("/api/auth/telegram", {
@@ -59,7 +50,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      router.replace(data.home || "/account");
+      router.replace(data.home || "/settings");
       router.refresh();
     } catch (err) {
       booted.current = false;
@@ -72,6 +63,10 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     if (window.Telegram?.WebApp) void authenticate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    syncTelegramChrome();
+  }, [theme]);
 
   return (
     <>
