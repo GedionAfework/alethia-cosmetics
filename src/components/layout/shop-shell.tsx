@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { RawRuleOf } from "@casl/ability";
 import { House, LogOut, Package, Receipt, ScanBarcode, Settings, type LucideIcon } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { BrandMark } from "@/components/ui/brand-mark";
 import { abilityFromRules, type AppAbility } from "@/lib/auth/ability";
 import { useI18n } from "@/lib/i18n/client";
 import { isNavActive, primaryNav, type NavKey } from "@/lib/nav";
@@ -18,19 +19,6 @@ const icons: Record<NavKey, LucideIcon> = {
   sales: Receipt,
   settings: Settings,
 };
-
-function BrandMark({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        "grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-accent to-accent-strong text-lg font-extrabold text-on-accent shadow-[0_8px_20px_-10px_var(--accent)]",
-        className
-      )}
-    >
-      A
-    </span>
-  );
-}
 
 export function ShopShell({
   name,
@@ -101,7 +89,7 @@ export function ShopShell({
       {/* Mobile top bar */}
       <header className="no-print sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line/60 bg-canvas/80 px-4 py-3 backdrop-blur-xl lg:hidden">
         <Link href="/" className="flex items-center gap-2.5">
-          <BrandMark className="size-9 rounded-xl text-base" />
+          <BrandMark size="sm" />
           <span className="leading-tight">
             <span className="block text-[15px] font-extrabold tracking-tight">{t.brand.name}</span>
             <span className="block text-[11px] font-semibold text-muted">{t.brand.tagline}</span>

@@ -1,4 +1,5 @@
 import { Crown, KeyRound, LogOut, Users } from "lucide-react";
+import { LogoUploader } from "@/components/settings/logo-uploader";
 import { ThemePicker, LanguagePicker } from "@/components/settings/preference-pickers";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,13 @@ export default async function SettingsPage({
           </div>
         </div>
       </Card>
+
+      {canAdmins && (
+        <section>
+          <SectionTitle>{t.settings.logo}</SectionTitle>
+          <LogoUploader />
+        </section>
+      )}
 
       <section>
         <SectionTitle>{t.settings.appearance}</SectionTitle>

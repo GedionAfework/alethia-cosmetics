@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { subject } from "@casl/ability";
 import { CircleCheck, Plus } from "lucide-react";
 import { PrintButton } from "@/components/pos/print-button";
+import { BrandMark } from "@/components/ui/brand-mark";
 import { ButtonLink } from "@/components/ui/button";
 import { loadAccess } from "@/lib/auth/access";
 import { formatDateTime, formatMoney } from "@/lib/i18n";
@@ -46,6 +47,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       </div>
 
       <article className="relative rounded-3xl bg-surface px-6 py-7 ring-1 ring-line shadow-[var(--shadow)] print:shadow-none print:ring-0">
+        <div className="mb-3 flex justify-center">
+          <BrandMark size="lg" className="print:shadow-none" />
+        </div>
         <p className="text-center text-xs font-bold tracking-[0.2em] text-accent uppercase">{t.brand.name}</p>
         <h1 className="text-center text-2xl font-extrabold tracking-tight">{t.brand.tagline}</h1>
         <div className="mt-4 space-y-0.5 text-center text-sm text-muted">

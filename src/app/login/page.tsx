@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
+import { BrandMark } from "@/components/ui/brand-mark";
 import { LanguagePicker } from "@/components/settings/preference-pickers";
 import { Notice } from "@/components/ui/notice";
 import { defineAbilityFor, homePath } from "@/lib/auth/ability";
@@ -25,9 +26,7 @@ export default async function LoginPage({
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm animate-rise">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="mb-4 grid size-16 place-items-center rounded-[1.4rem] bg-gradient-to-br from-accent to-accent-strong text-3xl font-extrabold text-on-accent shadow-[0_16px_36px_-14px_var(--accent)]">
-            A
-          </span>
+          <BrandMark size="lg" className="mb-4" />
           <p className="text-xs font-bold tracking-[0.25em] text-accent uppercase">{t.brand.name}</p>
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight">{t.brand.tagline}</h1>
         </div>

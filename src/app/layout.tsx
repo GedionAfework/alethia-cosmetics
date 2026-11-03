@@ -4,6 +4,7 @@ import { getMessages } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/client";
 import { getPreferences } from "@/lib/i18n/server";
 import { THEME_SWATCHES } from "@/lib/preferences";
+import { getLogoUrl } from "@/services/settings.service";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export async function generateViewport(): Promise<Viewport> {
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { theme, locale } = await getPreferences();
+  const [{ theme, locale }, logoUrl] = await Promise.all([getPreferences(), getLogoUrl()]);
 
   return (
     <html lang={locale} data-theme={theme} className="h-full" suppressHydrationWarning>
@@ -35,7 +36,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         />
       </head>
       <body className="min-h-full antialiased">
-        <I18nProvider messages={getMessages(locale)} locale={locale} theme={theme}>
+        <I18nProvider messages={getMessages(locale)} locale={locale} theme={theme} logoUrl={logoUrl}>
           <TelegramProvider>{children}</TelegramProvider>
         </I18nProvider>
       </body>

@@ -172,6 +172,9 @@ export const en = {
     users: "Users",
     roles: "Roles & permissions",
     admins: "Super Admins",
+    logo: "Shop logo",
+    logoUpload: "Upload logo",
+    logoChange: "Change logo",
     handedOff: "Super Admin handed off",
     themes: {
       blush: "Blush",

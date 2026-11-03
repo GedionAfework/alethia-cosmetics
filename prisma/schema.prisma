@@ -146,3 +146,13 @@ model SaleSequence {
 
   @@map("sale_sequences")
 }
+
+/// Single-row shop settings (id is always 1).
+model ShopSettings {
+  id        Int      @id @default(1)
+  logo      Bytes?
+  logoType  String?  @map("logo_type")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("shop_settings")
+}

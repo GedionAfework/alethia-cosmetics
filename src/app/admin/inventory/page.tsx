@@ -87,7 +87,9 @@ export default async function InventoryPage({
             href={chip.href}
             className={cn(
               "shrink-0 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition",
-              chip.active ? "bg-ink text-canvas ring-ink" : "bg-surface text-muted ring-line hover:text-ink"
+              chip.active
+                ? "bg-accent text-on-accent ring-accent shadow-[0_6px_16px_-8px_var(--accent)]"
+                : "bg-surface text-muted ring-line hover:text-ink"
             )}
           >
             {chip.label}

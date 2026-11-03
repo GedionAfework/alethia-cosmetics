@@ -174,6 +174,9 @@ export const am: Messages = {
     users: "ተጠቃሚዎች",
     roles: "ሚናዎች እና ፈቃዶች",
     admins: "ዋና አስተዳዳሪዎች",
+    logo: "የሱቅ አርማ",
+    logoUpload: "አርማ ጫን",
+    logoChange: "አርማ ቀይር",
     handedOff: "ዋና አስተዳዳሪነት ተላልፏል",
     themes: {
       blush: "ሮዝ",
@@ -248,6 +251,10 @@ export const am: Messages = {
     person: "ሠራተኛ",
   },
   errors: {
+    "Use a PNG, JPG or WebP image.": "PNG፣ JPG ወይም WebP ምስል ይጠቀሙ።",
+    "Image must be under 1 MB.": "ምስሉ ከ1 ሜባ በታች መሆን አለበት።",
+    "Could not save the logo.": "አርማውን ማስቀመጥ አልተቻለም።",
+    "Only a Super Admin can change the logo.": "አርማውን መቀየር የሚችለው ዋና አስተዳዳሪ ብቻ ነው።",
     "Enter a product name.": "የዕቃውን ስም ያስገቡ።",
     "Choose a category.": "ምድብ ይምረጡ።",
     "Enter a price greater than zero.": "ከዜሮ የሚበልጥ ዋጋ ያስገቡ።",
